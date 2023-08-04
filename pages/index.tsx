@@ -1,31 +1,49 @@
+import Floor from "@/Components/Floor";
+import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 export default function Home() {
   /** 층 수가 담긴 배열 */
   const floors = [...Array.from({ length: 8 }, (v, i) => i + 1)].reverse();
-
   /** 층의 높이 */
   const floorHeight = 100;
+
+  //현재 엘리베이터의 상태
+  const [elevatorState, setElevatorState] = useState<{
+    floor: number;
+    direction: "up" | "down" | undefined;
+  }>({
+    floor: 1,
+    direction: undefined,
+  });
+  const [selectedFloors, setSelectedFloors] = useState<number[]>([]);
 
   return (
     <Container>
       <InnerContainter>
         <div>
+          <ElevatorState>{elevatorState.floor}</ElevatorState>
           {floors.map((floor, i) => {
             return (
-              <Floor key={floor}>
-                <p>{floor}</p>
-                <ButtonContainer>
-                  {i !== 0 && <button>up</button>}
-                  {i !== floors.length - 1 && <button>down</button>}
-                </ButtonContainer>
-              </Floor>
+              <Floor key={floor} floor={floor} index={i} floors={floors} />
             );
           })}
         </div>
-        <Elevator>
+        <Elevator bottom={elevatorState.floor - 1}>
           {floors.map((floor) => {
-            return <FloorButton key={floor}>{floor}</FloorButton>;
+            return (
+              <FloorButton
+                key={floor}
+                onClick={() =>
+                  !selectedFloors.includes(floor) &&
+                  elevatorState.floor !== floor &&
+                  setSelectedFloors((prev) => [...prev, floor])
+                }
+                selected={selectedFloors.includes(floor)}
+              >
+                {floor}
+              </FloorButton>
+            );
           })}
         </Elevator>
       </InnerContainter>
@@ -47,35 +65,17 @@ const InnerContainter = styled.div`
   gap: 10px;
 `;
 
-const Floor = styled.div`
+const ElevatorState = styled.div`
   display: flex;
   justify-content: center;
-  align-items: center;
-  gap: 10px;
-  font-size: 30px;
-  width: 100px;
-  height: 100px;
-  border-right: 1px solid black;
-  border-left: 1px solid black;
-  border-top: 1px solid black;
-  &:last-of-type {
-    border-bottom: 1px solid black;
-  }
+  border: 1px solid black;
+  height: 20px;
+  margin-bottom: 20px;
 `;
 
-const ButtonContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  button {
-    font-size: 12px;
-    padding: 1px;
-  }
-`;
-
-const Elevator = styled.div`
+const Elevator = styled.div<{ bottom: number }>`
   position: absolute;
-  bottom: 0; // 변경값
+  bottom: ${(props) => props.bottom * 100}px;
   right: 0;
   width: 70px;
   height: 100px;
@@ -86,8 +86,8 @@ const Elevator = styled.div`
   align-items: center;
 `;
 
-const FloorButton = styled.button`
+const FloorButton = styled.button<{ selected: boolean }>`
   border-radius: 70%;
-  /* color: red;
-  border-color: red; */
+  color: ${(props) => (props.selected ? "red" : "")};
+  border-color: ${(props) => (props.selected ? "red" : "")};
 `;
